@@ -1,0 +1,22 @@
+I've got wonderful suffix tree by Sébastien Ferre <ferre@irisa.fr>, and quickly realized that they're GSTs, but only over 
+regular character strings.  I am using them with sensor data where observations are generally integer sequences.  Thus
+I went ahead and generalized the module, renaming is suffix.ml, and the functor is now Tree.
+
+An example of an alphabet is intseq.ml, where Intseq is defined as an integer alphabet and its strings are int arrays.
+
+An example of testing from the toplevel is intest.ml.
+
+Let me know if you want to improve this on Github!
+
+Cheers,
+Alexy Khrabrov <deliverable@gmail.com>
+
+The list of files:
+-- original Sébastien's:
+cis.ml/i
+lSet.ml
+suffix_tree.ml
+-- with Alexy's additions:
+suffix.ml
+intseq.ml
+intest.ml
