@@ -1,4 +1,16 @@
+++ create an .mli and separate specs there
+
+And reuse in in body without duplication.
+== RESOLVED: there's no way around duplication in ocaml right now!
+Simply copied separated .mli back into .ml head.
+
+-- performance: using Array 
+
 In Intseq, I mimic string as int array, with append of an int to the end implemented
 via append a [e].  The question is, what is the performance of this as compared to string ^ ?
 Would Dynarray, or Bigarray, or some other array-like data structure be better for the large
 observation sequences when building the generalized suffix tree?
+
+-- constructors: improving on Intseq.of_array
+
+Can we have a constuctor taking an array, like Seq [|...|] ?

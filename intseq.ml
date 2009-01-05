@@ -6,46 +6,10 @@
  *)
 
 
-module type ALPHABET = sig
-
-  (* characters *)
-
-  type t 
-
-  (* [dummy] is a character that is assumed not to appear in any string *)
-  val dummy : t
-
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-
-  (* val print :  Format.formatter -> t -> unit *)
-
-  val of_int : int -> t
-  
-  
-  (* strings over this alphabet *)
-
-  type s
-  
-  val empty : s
-
-  val length : s -> int
-
-  val get : s -> int -> t
-  
-  val sub: s -> int -> int -> s
-  
-  val append: s -> t -> s
-
-  val concat: s -> s -> s
-  
-  val of_array : int array -> s
-  val to_string: s -> string
-end
-
-
-module Intseq : ALPHABET = 
+(*  NB for cmo linking, I had to add with type t = int -- why? *)
+module Intseq : Suffix.ALPHABET with type t = int = 
 struct
+  (* this cannot be left out even when the above with type t = int specializer is given: *)
   type t = int
     
   let dummy = -1 (* NB need largest int value *)
@@ -61,8 +25,9 @@ struct
   type s = int array
   
   let empty = [||]
-  
+ 
   let length = Array.length
+  let is_empty a = length a = 0
   
   let get s i = s.(i) (* Array.get s i *) 
   
@@ -75,6 +40,11 @@ struct
   let of_array = Array.map of_int
   
   let to_string a = 
-    (Array.fold_left (fun acc num -> (if acc <> "" then acc ^ ";" else "[|")
-      ^ (string_of_int num)) "" a)^"|]";;
+    let prefix =
+      Array.fold_left (fun acc num -> (if acc <> "" then acc ^ ";" else "[|") ^ (string_of_int num)) 
+      "" a in
+    if String.length prefix > 0 then
+      prefix ^ "|]"
+    else
+      prefix
 end

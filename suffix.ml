@@ -11,29 +11,8 @@
    License: LGPL
 *)
 
-(* for test *)
-(*
-#load "cis.cmo";;
-#load "lSet.cmo";;
-*)
-
-(* copied from module Common *)
-
-let rec fold_while : ('a -> 'a option) -> 'a -> 'a =
-  fun f e ->
-    match f e with
-    | None -> e
-    | Some e' -> fold_while f e'
-
-let rec mapfind : ('a -> 'b option) -> 'a list -> 'b =
-  fun f -> function
-  | [] -> raise Not_found
-  | x::l -> match f x with
-      | None -> mapfind f l
-      | Some y -> y
-
-(* end of copy *)
-
+(* .mli begin ----------------------------------------------- 
+ *)
 
 (* From JC Filliatre, +empty, append, concat, sub *)
 
@@ -56,6 +35,7 @@ module type ALPHABET = sig
   type s
   
   val empty : s
+  val is_empty : s -> bool
 
   val length : s -> int
 
@@ -66,12 +46,9 @@ module type ALPHABET = sig
   val append: s -> t -> s
   val concat: s -> s -> s
   
+  val of_array : t array -> s
   val to_string: s -> string
 end
-
-
-(** [get_visible s] returns the sizes of the prefix and suffix of [s]
-   that can be removed from [s] without damage to its meaning. *)
 
 
 (* --------------------------------------------------------------------------------
@@ -97,60 +74,10 @@ module type SUBSEQUENCE =
   	val extend : t -> t
   end
   
-module Subsequence (A: ALPHABET) : SUBSEQUENCE with module A = A =
-  struct
-    module A = A
-    
-  	type t = A.s * int * int  (* (seq, pos, len) *)
-	  
-  	let empty = (A.empty,0,0)  (* ("",0,0) non-significant subseq *)
-    
-  	let is_empty (s,pos,len) = len = 0
-
-  	let get (s,pos,len) i = A.get s (pos+i)  (* s.[pos+i] *)
-
-  	let length (s,pos,len) = len
-
-  	let sub (s,pos,len) pos' len' = (s,pos+pos',len')
-
-  	let extend (s,pos,len) = (s,pos,len+1)
-end
-
-
-module Ext =
-  struct
-    type t = int * Cis.t
-
-    let cardinal (k,_) = k
-
-    let empty = (0,Cis.empty)
-
-    let mem i (k,cis) = Cis.mem i cis
-
-    let singleton i = (1,Cis.singleton i)
-
-    let add i (k,cis as ext) =
-      if Cis.mem i cis
-      then ext
-      else (k+1,Cis.add i cis)
-
-    let remove i (k,cis as ext) =
-      if Cis.mem i cis
-      then (k-1,Cis.remove i cis)
-      else ext
-
-    let union (_,cis1) (_,cis2) =
-      let cis = Cis.union cis1 cis2 in
-      (Cis.cardinal cis, cis)
-
-    let diff (_,cis1) (_,cis2) =
-      let cis = Cis.diff cis1 cis2 in
-      (Cis.cardinal cis, cis)
-
-    let elements (_,cis) = Cis.elements cis
-  end
-  
-
+ 
+(** [get_visible s] returns the sizes of the prefix and suffix of [s]
+   that can be removed from [s] without damage to its meaning. *)
+ 
 module type VISIBLE = sig
   module A: ALPHABET
   val get_visible : A.s -> int * int
@@ -159,7 +86,7 @@ module type VISIBLE = sig
 
 module type TREE = sig
   
-  module A       : ALPHABET
+  module A : ALPHABET
 
     type strid = int
 	  (** Type of string ids. Functions using such ids are unspecified if the id is not valid. *)
@@ -272,6 +199,86 @@ module type TREE = sig
 
     val tree : t -> tree
   end
+
+(* .mli end ===============================================
+ *)
+
+(* for test *)
+(*
+#load "cis.cmo";;
+#load "lSet.cmo";;
+*)
+
+(* copied from module Common *)
+
+let rec fold_while : ('a -> 'a option) -> 'a -> 'a =
+  fun f e ->
+    match f e with
+    | None -> e
+    | Some e' -> fold_while f e'
+
+let rec mapfind : ('a -> 'b option) -> 'a list -> 'b =
+  fun f -> function
+  | [] -> raise Not_found
+  | x::l -> match f x with
+      | None -> mapfind f l
+      | Some y -> y
+
+(* end of copy *)
+
+module Subsequence (A: ALPHABET) : SUBSEQUENCE with module A = A =
+  struct
+    module A = A
+    
+  	type t = A.s * int * int  (* (seq, pos, len) *)
+	  
+  	let empty = (A.empty,0,0)  (* ("",0,0) non-significant subseq *)
+    
+  	let is_empty (s,pos,len) = len = 0
+
+  	let get (s,pos,len) i = A.get s (pos+i)  (* s.[pos+i] *)
+
+  	let length (s,pos,len) = len
+
+  	let sub (s,pos,len) pos' len' = (s,pos+pos',len')
+
+  	let extend (s,pos,len) = (s,pos,len+1)
+end
+
+
+module Ext =
+  struct
+    type t = int * Cis.t
+
+    let cardinal (k,_) = k
+
+    let empty = (0,Cis.empty)
+
+    let mem i (k,cis) = Cis.mem i cis
+
+    let singleton i = (1,Cis.singleton i)
+
+    let add i (k,cis as ext) =
+      if Cis.mem i cis
+      then ext
+      else (k+1,Cis.add i cis)
+
+    let remove i (k,cis as ext) =
+      if Cis.mem i cis
+      then (k-1,Cis.remove i cis)
+      else ext
+
+    let union (_,cis1) (_,cis2) =
+      let cis = Cis.union cis1 cis2 in
+      (Cis.cardinal cis, cis)
+
+    let diff (_,cis1) (_,cis2) =
+      let cis = Cis.diff cis1 cis2 in
+      (Cis.cardinal cis, cis)
+
+    let elements (_,cis) = Cis.elements cis
+  end
+  
 
 
 module Tree (A: ALPHABET) (Visible: VISIBLE with module A=A) 
